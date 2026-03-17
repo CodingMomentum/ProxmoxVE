@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: tteck (tteckster) | MickLesk | michelroegl-brunner
-# License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/branch/main/LICENSE
+# License: MIT | https://github.com/CodingMomentum/ProxmoxVE/raw/branch/main/LICENSE
 
 # ==============================================================================
 # BUILD.FUNC - LXC CONTAINER BUILD & CONFIGURATION
@@ -83,16 +83,16 @@ variables() {
   fi
 }
 
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/api.func)
+source <(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/api.func)
 
 if command -v curl >/dev/null 2>&1; then
-  source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/core.func)
-  source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/error_handler.func)
+  source <(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/core.func)
+  source <(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/error_handler.func)
   load_functions
   catch_errors
 elif command -v wget >/dev/null 2>&1; then
-  source <(wget -qO- https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/core.func)
-  source <(wget -qO- https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/error_handler.func)
+  source <(wget -qO- https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/core.func)
+  source <(wget -qO- https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/error_handler.func)
   load_functions
   catch_errors
 fi
@@ -1486,7 +1486,7 @@ _build_vars_diff() {
 
 # Build a temporary <app>.vars file from current advanced settings
 _build_current_app_vars_tmp() {
-  tmpf="$(mktemp /tmp/${NSAPP:-app}.vars.new.XXXXXX)"
+  tmpf="$(mktemp /tmp/"${NSAPP:-app}".vars.new.XXXXXX)"
 
   # NET/GW
   _net="${NET:-}"
@@ -3437,7 +3437,7 @@ msg_menu() {
 # - Otherwise: shows update/setting menu and runs update_script with cleanup
 # ------------------------------------------------------------------------------
 start() {
-  source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/tools.func)
+  source <(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/tools.func)
   if command -v pveversion >/dev/null 2>&1; then
     install_script || return 0
     return 0
@@ -3572,9 +3572,9 @@ build_container() {
   pushd "$TEMP_DIR" >/dev/null
   local _func_url
   if [ "$var_os" == "alpine" ]; then
-    _func_url="https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/alpine-install.func"
+    _func_url="https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/alpine-install.func"
   else
-    _func_url="https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/install.func"
+    _func_url="https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/install.func"
   fi
   export FUNCTIONS_FILE_PATH="$(curl -fsSL "$_func_url")"
   if [[ -z "$FUNCTIONS_FILE_PATH" || ${#FUNCTIONS_FILE_PATH} -lt 100 ]]; then
@@ -3643,13 +3643,13 @@ $PCT_OPTIONS_STRING"
   # Add searchdomain if specified
   if [ -n "$SD" ]; then
     PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-  $SD"
+  -searchdomain $SD"
   fi
 
   # Add nameserver if specified
   if [ -n "$NS" ]; then
     PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-  $NS"
+    -nameserver \"$NS\""
   fi
 
   # Network configuration
@@ -4128,7 +4128,7 @@ EOF'
     # that sends "configuring" status AFTER the host already reported "failed"
     export CONTAINER_INSTALLING=true
 
-    lxc-attach -n "$CTID" -- bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/install/${var_install}.sh)"
+    lxc-attach -n "$CTID" -- bash -c "$(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/install/"${var_install}".sh)"
     local lxc_exit=$?
 
     unset CONTAINER_INSTALLING
@@ -4245,7 +4245,7 @@ EOF'
       else
         msg_dev "Container ${CTID} kept for debugging"
       fi
-      exit $install_exit_code
+      exit "$install_exit_code"
     fi
 
     # Prompt user for cleanup with 60s timeout
@@ -4434,14 +4434,14 @@ EOF'
         if [[ "${DEV_MODE_MOTD:-false}" == "true" ]]; then
           echo -e "${TAB}${HOLD}${DGN}Setting up MOTD and SSH for debugging...${CL}"
           if pct exec "$CTID" -- bash -c "
-              source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/install.func)
+              source <(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/install.func)
               declare -f motd_ssh >/dev/null 2>&1 && motd_ssh || true
             " >/dev/null 2>&1; then
             local ct_ip=$(pct exec "$CTID" ip a s dev eth0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1)
             echo -e "${BFR}${CM}${GN}MOTD/SSH ready - SSH into container: ssh root@${ct_ip}${CL}"
           fi
         fi
-        exit $install_exit_code
+        exit "$install_exit_code"
         ;;
       3)
         # Retry with verbose mode (full rebuild)
@@ -4506,7 +4506,7 @@ EOF'
           # Re-run install script in existing container (don't destroy/recreate)
           set +Eeuo pipefail
           trap - ERR
-          lxc-attach -n "$CTID" -- bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/install/${var_install}.sh)"
+          lxc-attach -n "$CTID" -- bash -c "$(curl -fsSL https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/install/"${var_install}".sh)"
           local apt_retry_exit=$?
           set -Eeuo pipefail
           trap 'error_handler' ERR
@@ -4622,7 +4622,7 @@ EOF'
 
         if [[ "$handled" == false ]]; then
           echo -e "\n${TAB}${YW}Invalid option. Container ${CTID} kept.${CL}"
-          exit $install_exit_code
+          exit "$install_exit_code"
         fi
         ;;
       esac
@@ -4643,7 +4643,7 @@ EOF'
 
     # Restore default job-control signal handling before exit
     trap - TSTP TTIN TTOU
-    exit $install_exit_code
+    exit "$install_exit_code"
   fi
 
   # Re-enable error handling after successful install or recovery menu completion
@@ -5007,7 +5007,7 @@ create_lxc_container() {
         msg_ok "LXC stack upgraded."
         if [[ "$do_retry" == "yes" ]]; then
           msg_info "Retrying container creation after upgrade"
-          if pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" $PCT_OPTIONS >>"$LOGFILE" 2>&1; then
+          if pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" >>"$LOGFILE" 2>&1; then
             msg_ok "Container created successfully after upgrade."
             return 0
           else
@@ -5262,7 +5262,7 @@ create_lxc_container() {
     fi
   fi
 
-  TEMPLATE_PATH="$(pvesm path $TEMPLATE_STORAGE:vztmpl/$TEMPLATE 2>/dev/null || true)"
+  TEMPLATE_PATH="$(pvesm path "$TEMPLATE_STORAGE":vztmpl/"$TEMPLATE" 2>/dev/null || true)"
   if [[ -z "$TEMPLATE_PATH" ]]; then
     TEMPLATE_BASE=$(awk -v s="$TEMPLATE_STORAGE" '$1==s {f=1} f && /path/ {print $2; exit}' /etc/pve/storage.cfg)
     [[ -n "$TEMPLATE_BASE" ]] && TEMPLATE_PATH="$TEMPLATE_BASE/template/cache/$TEMPLATE"
@@ -5326,7 +5326,7 @@ create_lxc_container() {
             TEMPLATE_SOURCE="online"
           fi
 
-          TEMPLATE_PATH="$(pvesm path $TEMPLATE_STORAGE:vztmpl/$TEMPLATE 2>/dev/null || true)"
+          TEMPLATE_PATH="$(pvesm path "$TEMPLATE_STORAGE":vztmpl/"$TEMPLATE" 2>/dev/null || true)"
           if [[ -z "$TEMPLATE_PATH" ]]; then
             TEMPLATE_BASE=$(awk -v s="$TEMPLATE_STORAGE" '$1==s {f=1} f && /path/ {print $2; exit}' /etc/pve/storage.cfg)
             [[ -n "$TEMPLATE_BASE" ]] && TEMPLATE_PATH="$TEMPLATE_BASE/template/cache/$TEMPLATE"
@@ -5522,7 +5522,7 @@ create_lxc_container() {
   msg_debug "Logfile: $LOGFILE"
 
   # First attempt (PCT_OPTIONS is a multi-line string, use it directly)
-  if ! pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" $PCT_OPTIONS >"$LOGFILE" 2>&1; then
+  if ! pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" >"$LOGFILE" 2>&1; then
     msg_debug "Container creation failed on ${TEMPLATE_STORAGE}. Checking error..."
 
     # Check if template issue - retry with fresh download
@@ -5534,7 +5534,7 @@ create_lxc_container() {
     fi
 
     # Retry after repair
-    if ! pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" $PCT_OPTIONS >>"$LOGFILE" 2>&1; then
+    if ! pct create "$CTID" "${TEMPLATE_STORAGE}:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" >>"$LOGFILE" 2>&1; then
       # Fallback to local storage if not already on local
       if [[ "$TEMPLATE_STORAGE" != "local" ]]; then
         msg_info "Retrying container creation with fallback to local storage"
@@ -5547,7 +5547,7 @@ create_lxc_container() {
         else
           msg_ok "Trying local storage fallback"
         fi
-        if ! pct create "$CTID" "local:vztmpl/${TEMPLATE}" $PCT_OPTIONS >>"$LOGFILE" 2>&1; then
+        if ! pct create "$CTID" "local:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" >>"$LOGFILE" 2>&1; then
           # Local fallback also failed - check for LXC stack version issue
           if grep -qiE 'unsupported .* version' "$LOGFILE"; then
             msg_warn "pct reported 'unsupported version' – LXC stack might be too old for this template"
@@ -5570,7 +5570,7 @@ create_lxc_container() {
             msg_error "Container creation failed. See $LOGFILE"
             if whiptail --yesno "pct create failed.\nDo you want to enable verbose debug mode and view detailed logs?" 12 70; then
               set -x
-              pct create "$CTID" "local:vztmpl/${TEMPLATE}" $PCT_OPTIONS 2>&1 | tee -a "$LOGFILE"
+              pct create "$CTID" "local:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" 2>&1 | tee -a "$LOGFILE"
               set +x
             fi
             _flush_pct_log
@@ -5602,7 +5602,7 @@ create_lxc_container() {
           msg_error "Container creation failed. See $LOGFILE"
           if whiptail --yesno "pct create failed.\nDo you want to enable verbose debug mode and view detailed logs?" 12 70; then
             set -x
-            pct create "$CTID" "local:vztmpl/${TEMPLATE}" $PCT_OPTIONS 2>&1 | tee -a "$LOGFILE"
+            pct create "$CTID" "local:vztmpl/${TEMPLATE}" "$PCT_OPTIONS" 2>&1 | tee -a "$LOGFILE"
             set +x
           fi
           _flush_pct_log
@@ -5665,7 +5665,7 @@ description() {
     cat <<EOF
 <div align='center'>
   <a href='https://Helper-Scripts.com' target='_blank' rel='noopener noreferrer'>
-    <img src='https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/images/logo-81x112.png' alt='Logo' style='width:81px;height:112px;'/>
+    <img src='https://raw.githubusercontent.com/CodingMomentum/ProxmoxVE/main/misc/images/logo-81x112.png' alt='Logo' style='width:81px;height:112px;'/>
   </a>
 
   <h2 style='font-size: 24px; margin: 20px 0;'>${APP} LXC</h2>
@@ -5678,15 +5678,15 @@ description() {
 
   <span style='margin: 0 10px;'>
     <i class="fa fa-github fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>GitHub</a>
+    <a href='https://github.com/CodingMomentum/ProxmoxVE' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>GitHub</a>
   </span>
   <span style='margin: 0 10px;'>
     <i class="fa fa-comments fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE/discussions' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Discussions</a>
+    <a href='https://github.com/CodingMomentum/ProxmoxVE/discussions' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Discussions</a>
   </span>
   <span style='margin: 0 10px;'>
     <i class="fa fa-exclamation-circle fa-fw" style="color: #f5f5f5;"></i>
-    <a href='https://github.com/community-scripts/ProxmoxVE/issues' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Issues</a>
+    <a href='https://github.com/CodingMomentum/ProxmoxVE/issues' target='_blank' rel='noopener noreferrer' style='text-decoration: none; color: #00617f;'>Issues</a>
   </span>
 </div>
 EOF
