@@ -3642,14 +3642,14 @@ $PCT_OPTIONS_STRING"
 
   # Add searchdomain if specified
   if [ -n "$SD" ]; then
-    PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-  -searchdomain $SD"
+    PCT_OPTIONS_STRING="  -searchdomain $SD
+$PCT_OPTIONS_STRING"
   fi
 
   # Add nameserver if specified
   if [ -n "$NS" ]; then
-    PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-    -nameserver \"$NS\""
+    PCT_OPTIONS_STRING="  -nameserver '$NS'
+$PCT_OPTIONS_STRING"
   fi
 
   # Network configuration
