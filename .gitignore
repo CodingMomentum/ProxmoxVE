@@ -68,3 +68,6 @@ json/.vscode/
 .git/
 .gitignore
 .vscode/settings.json
+
+# Ignore the git-setup-info file for new contributors
+.git-setup-info
