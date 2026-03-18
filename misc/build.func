@@ -3643,13 +3643,13 @@ $PCT_OPTIONS_STRING"
   # Add searchdomain if specified
   if [ -n "$SD" ]; then
     PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-		-searchdomain $SD"
+	-searchdomain $SD"
   fi
 
   # Add nameserver if specified
   if [ -n "$NS" ]; then
     PCT_OPTIONS_STRING="$PCT_OPTIONS_STRING
-		$NS"
+	-nameserver $NS"
   fi
 
   # Network configuration
